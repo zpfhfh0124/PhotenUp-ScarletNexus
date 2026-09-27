@@ -11,8 +11,9 @@ EStateTreeRunStatus FEnemyTask_Chase::EnterState(FStateTreeExecutionContext& Con
 {
 	auto& data = Context.GetInstanceData(*this);
 	data.ElapsedSinceRepath = 0.f;
-	
-	if (!data.ChaseTarget) return EStateTreeRunStatus::Failed;
+
+	// IsValid()로 검사: Destroy된 직후의 pending-kill 액터는 raw pointer가 non-null일 수 있음
+	if (!IsValid(data.ChaseTarget)) return EStateTreeRunStatus::Failed;
 	
 	// owner -> pawn -> AIController 경로로 MoveTo 요청
 	AAIController* aic = Cast<AAIController>(Context.GetOwner());
@@ -26,13 +27,13 @@ EStateTreeRunStatus FEnemyTask_Chase::EnterState(FStateTreeExecutionContext& Con
 EStateTreeRunStatus FEnemyTask_Chase::Tick(FStateTreeExecutionContext& Context, const float DeltaTime) const
 {
 	auto& data = Context.GetInstanceData(*this);
-	if (!data.ChaseTarget) return EStateTreeRunStatus::Failed;
+	if (!IsValid(data.ChaseTarget)) return EStateTreeRunStatus::Failed;
 
 	AAIController* aic = Cast<AAIController>(Context.GetOwner());
 	if (!aic) return EStateTreeRunStatus::Failed;
-	
+
 	APawn* pawn = aic->GetPawn();
-	if (!pawn) return EStateTreeRunStatus::Failed;
+	if (!IsValid(pawn)) return EStateTreeRunStatus::Failed;
 	
 	// AcceptanceRadius 이내에 도달했으면 성공
 	const float dist = FVector::Dist(pawn->GetActorLocation(), data.ChaseTarget->GetActorLocation());

@@ -75,7 +75,7 @@ void FEnemyEvaluator::Tick(FStateTreeExecutionContext& Context, const float Delt
 	for (const FOverlapResult& hit : overlaps)
 	{
 		AActor* actor = hit.GetActor();
-		if (!actor) continue;
+		if (!IsValid(actor)) continue;
 		
 		// 플레이어 캐릭터 or 파티 맴버를 타겟으로 인식
 		bool bIsTarget = false;
@@ -100,8 +100,8 @@ void FEnemyEvaluator::Tick(FStateTreeExecutionContext& Context, const float Delt
 	}
 	
 	data.NearestTarget = bestTarget;
-	
-	if (bestTarget)
+
+	if (IsValid(bestTarget))
 	{
 		data.DistanceToTarget = FVector::Dist(pawnLocation, bestTarget->GetActorLocation());
 		data.bInAttackRange = data.DistanceToTarget <= data.AttackRange;

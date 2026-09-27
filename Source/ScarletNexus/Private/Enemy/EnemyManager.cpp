@@ -163,7 +163,10 @@ void AEnemyManager::InitPool()
 	
 	for (const TSubclassOf<AEnemyBase>& enemyClass : UniqueClasses)
 	{
-		TArray<AEnemyBase*> pool = EnemyPool.FindOrAdd(enemyClass);
+		// 참조(&)로 받아야 함: 값으로 복사하면 아래 pool.Add()가 로컬 복사본에만 쌓이고
+		// EnemyPool 맵의 실제 배열은 항상 비어있게 되어(GetFromPool이 매번 풀을 "비어있음"으로 판단),
+		// 사전 워밍한 개체들이 재사용되지 못한 채 버려지는 버그가 있었음
+		TArray<AEnemyBase*>& pool = EnemyPool.FindOrAdd(enemyClass);
 		
 		for (int32 i = 0; i < PoolSizePerClass; ++i)
 		{

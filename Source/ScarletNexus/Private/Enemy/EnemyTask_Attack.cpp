@@ -26,8 +26,10 @@ EStateTreeRunStatus FEnemyTask_Attack::EnterState(FStateTreeExecutionContext& Co
 	auto& data = Context.GetInstanceData(*this);
 	data.ElapsedTime = 0.0f;
 	data.bDamageApplied = false;
-	
-	if (!data.Target) return EStateTreeRunStatus::Failed;
+
+	// 널 체크만으로는 부족함: 타겟이 이미 Destroy된(pending-kill) 액터일 수 있으므로
+	// IsValid()로 검사해야 함 (raw pointer는 Destroy 직후에도 non-null일 수 있음)
+	if (!IsValid(data.Target)) return EStateTreeRunStatus::Failed;
 
 	// 공격 몽타주 재생
 	AEnemyBase* enemy = GetEnemyFromContext_Attack(Context);
@@ -46,12 +48,13 @@ EStateTreeRunStatus FEnemyTask_Attack::Tick(FStateTreeExecutionContext& Context,
 {
 	auto& data = Context.GetInstanceData(*this);
 	AEnemyBase* enemy = GetEnemyFromContext_Attack(Context);
-	if (!enemy || !data.Target) return EStateTreeRunStatus::Failed;
-	
+	if (!IsValid(enemy) || !IsValid(data.Target)) return EStateTreeRunStatus::Failed;
+
 	data.ElapsedTime += DeltaTime;
-	
+
 	// 쿨다운 중 특정 시점에 한 번 데미지 적용
-	if (!data.bDamageApplied && data.ElapsedTime >= data.AttackCooldown * data.DamageTimingRatio)
+	// 프레임 사이(공격 대기 중)에 타겟이 Destroy될 수 있으므로 여기서도 다시 확인
+	if (!data.bDamageApplied && IsValid(data.Target) && data.ElapsedTime >= data.AttackCooldown * data.DamageTimingRatio)
 	{
 		const float dist = FVector::Dist(enemy->GetActorLocation(), data.Target->GetActorLocation());
 		
