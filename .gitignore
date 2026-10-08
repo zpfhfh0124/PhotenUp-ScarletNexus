@@ -82,3 +82,12 @@ DerivedDataCache/*
 Content/Movies/Upscale_to_2K_resolution-1775710817969.*
 video-Title.mp4
 Content/Movies/video-Title.mp4
+# Packaged builds / engine-generated — never commit
+Windows/
+Binaries/
+Intermediate/
+Saved/
+DerivedDataCache/
+*.ucas
+*.utoc
+*.pak
